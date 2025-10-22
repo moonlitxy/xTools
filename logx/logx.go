@@ -78,7 +78,26 @@ func (l *Logger) getLogger(fileName string) *zap.Logger {
 		panic(fmt.Sprintf("无法创建日志文件: %v", err))
 	}
 
-	encoderCfg := zapcore.EncoderConfig{
+	// 创建 MultiWriter 实现同时输出到文件和控制台
+	console := zapcore.NewCore(
+		zapcore.NewJSONEncoder(zapcore.EncoderConfig{
+			TimeKey:      "datetime",
+			LevelKey:     "level",
+			NameKey:      "logger",
+			CallerKey:    "caller",
+			MessageKey:   "message",
+			EncodeLevel:  zapcore.LowercaseLevelEncoder,
+			EncodeCaller: zapcore.ShortCallerEncoder,
+			EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+				enc.AppendString(t.Format(
+					"2006-01-02 15:04:05.000"))
+			}}),
+		zapcore.AddSync(os.Stdout),
+		// 输出到终端
+		zap.DebugLevel,
+	)
+
+	fileEncoder := zapcore.NewJSONEncoder(zapcore.EncoderConfig{
 		TimeKey:      "datetime",
 		LevelKey:     "level",
 		NameKey:      "logger",
@@ -89,15 +108,16 @@ func (l *Logger) getLogger(fileName string) *zap.Logger {
 		EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 			enc.AppendString(t.Format("2006-01-02 15:04:05.000"))
 		},
-	}
+	})
 
-	core := zapcore.NewCore(
-		zapcore.NewJSONEncoder(encoderCfg),
-		zapcore.AddSync(file),
-		l.logLevel,
+	// 写入文件和终端的 logCore
+	logCore := zapcore.NewTee(
+		zapcore.NewCore(fileEncoder, zapcore.AddSync(file), l.logLevel),
+		console,
 	)
 
-	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(l.callerSkip))
+	// 生成 logger
+	logger := zap.New(logCore, zap.AddCaller(), zap.AddCallerSkip(l.callerSkip))
 	l.loggerMap[fileName] = logger
 	return logger
 }

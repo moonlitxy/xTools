@@ -1,2 +1,0 @@
-{"level":"debug","datetime":"2025-10-22 16:28:42.185","caller":"tests/log_test.go:12","message":"订单号生成中","module":"订单模块"}
-{"level":"error","datetime":"2025-10-22 16:28:42.185","caller":"tests/log_test.go:13","message":"库存不足","module":"订单模块"}

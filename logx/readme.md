@@ -19,4 +19,4 @@
 在你的项目中引入：
 
 ```bash
-go get github.com/monnlitxyu/xTools/logx
+go get github.com/monnlitxy/xTools/logx

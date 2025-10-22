@@ -1,4 +1,5 @@
-module xTools
+module  github.com/moonlitxy/xTools
+
 
 go 1.24.0
 
